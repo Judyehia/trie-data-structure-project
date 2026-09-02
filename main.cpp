@@ -256,7 +256,7 @@ public:
     bool isEmpty()
     {
         // TODO: Implement this function
-        return true; // placeholder
+        return wordCount == 0;
     }
 
     // Remove all words from the Trie
