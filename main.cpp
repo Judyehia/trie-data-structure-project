@@ -206,6 +206,11 @@ public:
     void remove(string word)
     {
         // TODO: Implement this function
+        if (search(word))
+        {
+            removeHelper(root, word, 0);
+            wordCount--;
+        }
     }
 
     // Count the total number of words in the Trie
