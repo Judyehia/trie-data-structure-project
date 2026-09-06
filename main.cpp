@@ -346,6 +346,8 @@ public:
 
         return suggestions;
     }
+    return suggestions;
+}
 };
 
 // Main function
