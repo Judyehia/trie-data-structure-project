@@ -41,18 +41,43 @@ private:
     void findAllWords(
         TrieNode *node,
         string currentWord,
-        vector<string> &results)
-    {
-        // TODO: Implement this function
+        vector<string>& results
+    ) {
+        if (node == nullptr)
+            return;
+
+        if (node->isEndOfWord) {
+             results.push_back(currentWord);
+        }
+
+        for (int i = 0; i < 26; i++) {
+             if (node->children[i] != nullptr) {
+                 char nextChar = 'a' + i;
+
+                 findAllWords(
+                     node->children[i],
+                     currentWord + nextChar,
+                     results
+                 );
+            }
+        }
     }
 
     // Helper function to delete all nodes recursively
     // Input: current node
     // Output: none
     // Purpose: Free all dynamically allocated Trie nodes
-    void deleteNodes(TrieNode *node)
-    {
-        // TODO: Implement this function
+    void deleteNodes(TrieNode* node) {
+        if (node == nullptr)
+            return;
+
+        for (int i = 0; i < 26; i++) {
+            if (node->children[i] != nullptr) {
+                deleteNodes(node->children[i]);
+            }
+        }
+
+        delete node;
     }
 
     // Helper function to count words from a specific node
@@ -139,16 +164,15 @@ public:
     // Input: none
     // Output: none
     // Purpose: Initialize the Trie with a root node
-    Trie()
-    {
-        // TODO: Implement this function
+    Trie() {
+        root = new TrieNode();
+        wordCount = 0;
     }
 
     // Destructor
     // Purpose: Free all dynamically allocated memory
-    ~Trie()
-    {
-        // TODO: Implement this function
+    ~Trie() {
+        deleteNodes(root);
     }
 
     // Insert a word into the Trie
@@ -158,6 +182,23 @@ public:
     void insert(string word)
     {
         // TODO: Implement this function
+        TrieNode *current = root;
+
+        for (char ch : word)
+        {
+            int index = ch - 'a';
+
+            if (current->children[index] == nullptr)
+                current->children[index] = new TrieNode();
+
+            current = current->children[index];
+        }
+
+        if (!current->isEndOfWord)
+        {
+            current->isEndOfWord = true;
+            wordCount++;
+        }
     }
 
     // Search for a word in the Trie
@@ -167,7 +208,18 @@ public:
     bool search(string word)
     {
         // TODO: Implement this function
-        return false; // placeholder
+        TrieNode *current = root;
+
+        for (char ch : word)
+        {
+            int index = ch - 'a';
+
+            if (current->children[index] == nullptr)
+                return false;
+
+            current = current->children[index];
+        }
+        return current->isEndOfWord;
     }
 
     // Check if any word starts with the given prefix
@@ -178,7 +230,19 @@ public:
     bool startsWith(string prefix)
     {
         // TODO: Implement this function
-        return false; // placeholder
+        TrieNode *current = root;
+
+        for (char ch : prefix)
+        {
+            int index = ch - 'a';
+
+            if (current->children[index] == nullptr)
+                return false;
+
+            current = current->children[index];
+        }
+
+        return true;
     }
 
     // Get all words that start with the given prefix
@@ -287,7 +351,7 @@ public:
     bool isEmpty()
     {
         // TODO: Implement this function
-        return true; // placeholder
+        return wordCount == 0;
     }
 
     // Remove all words from the Trie
@@ -324,6 +388,8 @@ public:
 
         return suggestions;
     }
+    return suggestions;
+}
 };
 
 // Main function
