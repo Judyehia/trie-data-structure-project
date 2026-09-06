@@ -84,17 +84,21 @@ private:
     // Input: current node
     // Output: number of complete words below this node
     // Purpose: Count all words starting from this node
-    int countWordsFromNode(TrieNode* node) {
+    int countWordsFromNode(TrieNode *node)
+    {
         // Count this node's own word (if it terminates one), then add
         // however many complete words exist across every child subtree.
         int count = 0;
 
-        if (node->isEndOfWord) {
+        if (node->isEndOfWord)
+        {
             count = 1;
         }
 
-        for (int i = 0; i < 26; i++) {
-            if (node->children[i] != nullptr) {
+        for (int i = 0; i < 26; i++)
+        {
+            if (node->children[i] != nullptr)
+            {
                 count += countWordsFromNode(node->children[i]);
             }
         }
@@ -119,7 +123,40 @@ private:
         int index)
     {
         // TODO: Implement this function
-        return false;
+        if (index == word.length())
+        {
+            if (!node->isEndOfWord)
+                return false;
+
+            node->isEndOfWord = false;
+            for (int i = 0; i < 26; i++)
+            {
+                if (node->children[i] != nullptr)
+                    return false;
+            }
+            return true;
+        }
+
+        int idx = word[index] - 'a';
+
+        if (node->children[idx] == nullptr)
+            return false;
+
+        bool shouldDeleteChild = removeHelper(node->children[idx], word, index + 1);
+        if (shouldDeleteChild)
+        {
+            delete node->children[idx];
+            node->children[idx] = nullptr;
+        }
+        if (node->isEndOfWord)
+            return false;
+
+        for (int i = 0; i < 26; i++)
+        {
+            if (node->children[i] != nullptr)
+                return false;
+        }
+        return true;
     }
 
 public:
@@ -244,7 +281,8 @@ public:
     // Input: none
     // Output: number of words
     // Purpose: Return how many unique complete words exist in the Trie
-    int countWords() {
+    int countWords()
+    {
         // wordCount is maintained incrementally by insert()/remove(),
         // so this is a simple O(1) lookup rather than a re-traversal.
         return wordCount;
@@ -254,14 +292,17 @@ public:
     // Input: prefix
     // Output: number of words
     // Purpose: Count all complete words that begin with the prefix
-    int countWordsWithPrefix(string prefix) {
+    int countWordsWithPrefix(string prefix)
+    {
         // Walk the prefix path the same way startsWith() does.
-        TrieNode* current = root;
+        TrieNode *current = root;
 
-        for (char ch : prefix) {
+        for (char ch : prefix)
+        {
             int index = ch - 'a';
 
-            if (current->children[index] == nullptr) {
+            if (current->children[index] == nullptr)
+            {
                 return 0;
             }
 
@@ -317,7 +358,8 @@ public:
     // Input: none
     // Output: none
     // Purpose: Completely clear the Trie
-    void clear() {
+    void clear()
+    {
         // Free the entire existing tree first so the old nodes don't leak,
         // then reset the Trie back to a freshly-constructed empty state.
         deleteNodes(root);
