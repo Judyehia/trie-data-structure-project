@@ -33,6 +33,7 @@ private:
 
     // Stores the total number of unique words in the Trie
     int wordCount;
+    vector<string> mixedCaseWords;
 
     // Helper function to find all words from a node
     // Input: current node, current word formed so far, results vector
@@ -137,7 +138,12 @@ private:
             return true;
         }
 
-        int idx = word[index] - 'a';
+        char ch = word[index];
+
+if (ch >= 'A' && ch <= 'Z')
+    ch = ch - 'A' + 'a';
+
+int idx = ch - 'a';
 
         if (node->children[idx] == nullptr)
             return false;
@@ -180,47 +186,96 @@ public:
     // Output: none
     // Purpose: Add a word to the Trie by creating nodes for each character
     void insert(string word)
+{
+
+    bool hasUppercase = false;
+
+    for (char ch : word)
     {
-        // TODO: Implement this function
-        TrieNode *current = root;
-
-        for (char ch : word)
+        if (ch >= 'A' && ch <= 'Z')
         {
-            int index = ch - 'a';
-
-            if (current->children[index] == nullptr)
-                current->children[index] = new TrieNode();
-
-            current = current->children[index];
-        }
-
-        if (!current->isEndOfWord)
-        {
-            current->isEndOfWord = true;
-            wordCount++;
+            hasUppercase = true;
+            break;
         }
     }
+
+    if (hasUppercase)
+    {
+        for (const string &w : mixedCaseWords)
+        {
+            if (w == word)
+                return;
+        }
+
+        mixedCaseWords.push_back(word);
+        wordCount++;
+        return;
+    }
+
+    TrieNode *current = root;
+
+    for (char ch : word)
+    {
+        int index = ch - 'a';
+
+        if (current->children[index] == nullptr)
+            current->children[index] = new TrieNode();
+
+        current = current->children[index];
+    }
+
+    if (!current->isEndOfWord)
+    {
+        current->isEndOfWord = true;
+        wordCount++;
+    }
+}
 
     // Search for a word in the Trie
     // Input: word to search for
     // Output: boolean indicating if the word exists
     // Purpose: Check if the complete word exists in the Trie
     bool search(string word)
+{
+    if (word.empty())
+        return false;
+
+    bool hasUppercase = false;
+
+    for (char ch : word)
     {
-        // TODO: Implement this function
-        TrieNode *current = root;
-
-        for (char ch : word)
+        if (ch >= 'A' && ch <= 'Z')
         {
-            int index = ch - 'a';
-
-            if (current->children[index] == nullptr)
-                return false;
-
-            current = current->children[index];
+            hasUppercase = true;
+            break;
         }
-        return current->isEndOfWord;
     }
+
+    if (hasUppercase)
+    {
+        for (const string &w : mixedCaseWords)
+        {
+            if (w == word)
+                return true;
+        }
+
+        return false;
+    }
+
+    TrieNode *current = root;
+
+    for (char ch : word)
+    {
+        int index = ch - 'a';
+
+        if (current->children[index] == nullptr)
+            return false;
+
+        current = current->children[index];
+    }
+
+    return current->isEndOfWord;
+}
 
     // Check if any word starts with the given prefix
     // Input: prefix to check
@@ -234,7 +289,10 @@ public:
 
         for (char ch : prefix)
         {
-            int index = ch - 'a';
+            if (ch >= 'A' && ch <= 'Z')
+    ch = ch - 'A' + 'a';
+
+int index = ch - 'a';
 
             if (current->children[index] == nullptr)
                 return false;
@@ -253,7 +311,22 @@ public:
     {
         vector<string> suggestions;
 
-        // TODO: Implement this function
+        TrieNode* current = root;
+
+for (char ch : prefix)
+{
+    if (ch >= 'A' && ch <= 'Z')
+        ch = ch - 'A' + 'a';
+
+    int index = ch - 'a';
+
+    if (current->children[index] == nullptr)
+        return suggestions;
+
+    current = current->children[index];
+}
+
+findAllWords(current, prefix, suggestions);
 
         return suggestions;
     }
@@ -299,8 +372,10 @@ public:
 
         for (char ch : prefix)
         {
-            int index = ch - 'a';
+            if (ch >= 'A' && ch <= 'Z')
+    ch = ch - 'A' + 'a';
 
+int index = ch - 'a';
             if (current->children[index] == nullptr)
             {
                 return 0;
@@ -318,11 +393,12 @@ public:
     // Input: none
     // Output: vector containing all words
     // Purpose: Return every complete word stored in the Trie
+    // Purpose: Return every complete word stored in the Trie
     vector<string> getAllWords()
     {
         vector<string> words;
 
-        // TODO: Implement this function
+        findAllWords(root, "", words);
 
         return words;
     }
@@ -338,11 +414,29 @@ public:
     //
     // Input: "appreciate"
     // Output: "app"
-    string longestPrefixOf(string word)
+   string longestPrefixOf(string word)
+{
+    TrieNode* current = root;
+    string prefix = "";
+
+    for (char ch : word)
     {
-        // TODO: Implement this function
-        return "";
+        if (ch >= 'A' && ch <= 'Z')
+            ch = ch - 'A' + 'a';
+
+        int index = ch - 'a';
+
+        if (current->children[index] == nullptr)
+            break;
+
+        current = current->children[index];
+        prefix += ch;
     }
+
+    return prefix;
+}
+
+
 
     // Check whether the Trie contains any words
     // Input: none
@@ -384,12 +478,16 @@ public:
     {
         vector<string> suggestions;
 
-        // TODO: Implement this function
+       suggestions = autocomplete(prefix);
+
+if (suggestions.size() > limit)
+{
+    suggestions.resize(limit);
+}
 
         return suggestions;
     }
-    return suggestions;
-}
+
 };
 
 // Main function
