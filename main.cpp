@@ -41,28 +41,65 @@ private:
     void findAllWords(
         TrieNode *node,
         string currentWord,
-        vector<string> &results)
-    {
-        // TODO: Implement this function
+        vector<string>& results
+    ) {
+        if (node == nullptr)
+            return;
+
+        if (node->isEndOfWord) {
+             results.push_back(currentWord);
+        }
+
+        for (int i = 0; i < 26; i++) {
+             if (node->children[i] != nullptr) {
+                 char nextChar = 'a' + i;
+
+                 findAllWords(
+                     node->children[i],
+                     currentWord + nextChar,
+                     results
+                 );
+            }
+        }
     }
 
     // Helper function to delete all nodes recursively
     // Input: current node
     // Output: none
     // Purpose: Free all dynamically allocated Trie nodes
-    void deleteNodes(TrieNode *node)
-    {
-        // TODO: Implement this function
+    void deleteNodes(TrieNode* node) {
+        if (node == nullptr)
+            return;
+
+        for (int i = 0; i < 26; i++) {
+            if (node->children[i] != nullptr) {
+                deleteNodes(node->children[i]);
+            }
+        }
+
+        delete node;
     }
 
     // Helper function to count words from a specific node
     // Input: current node
     // Output: number of complete words below this node
     // Purpose: Count all words starting from this node
-    int countWordsFromNode(TrieNode *node)
-    {
-        // TODO: Implement this function
-        return 0;
+    int countWordsFromNode(TrieNode* node) {
+        // Count this node's own word (if it terminates one), then add
+        // however many complete words exist across every child subtree.
+        int count = 0;
+
+        if (node->isEndOfWord) {
+            count = 1;
+        }
+
+        for (int i = 0; i < 26; i++) {
+            if (node->children[i] != nullptr) {
+                count += countWordsFromNode(node->children[i]);
+            }
+        }
+
+        return count;
     }
 
     // Helper function to remove a word recursively
@@ -90,16 +127,15 @@ public:
     // Input: none
     // Output: none
     // Purpose: Initialize the Trie with a root node
-    Trie()
-    {
-        // TODO: Implement this function
+    Trie() {
+        root = new TrieNode();
+        wordCount = 0;
     }
 
     // Destructor
     // Purpose: Free all dynamically allocated memory
-    ~Trie()
-    {
-        // TODO: Implement this function
+    ~Trie() {
+        deleteNodes(root);
     }
 
     // Insert a word into the Trie
@@ -208,20 +244,33 @@ public:
     // Input: none
     // Output: number of words
     // Purpose: Return how many unique complete words exist in the Trie
-    int countWords()
-    {
-        // TODO: Implement this function
-        return 0;
+    int countWords() {
+        // wordCount is maintained incrementally by insert()/remove(),
+        // so this is a simple O(1) lookup rather than a re-traversal.
+        return wordCount;
     }
 
     // Count how many words start with a given prefix
     // Input: prefix
     // Output: number of words
     // Purpose: Count all complete words that begin with the prefix
-    int countWordsWithPrefix(string prefix)
-    {
-        // TODO: Implement this function
-        return 0;
+    int countWordsWithPrefix(string prefix) {
+        // Walk the prefix path the same way startsWith() does.
+        TrieNode* current = root;
+
+        for (char ch : prefix) {
+            int index = ch - 'a';
+
+            if (current->children[index] == nullptr) {
+                return 0;
+            }
+
+            current = current->children[index];
+        }
+
+        // Once we're at the end of the prefix, delegate to the helper
+        // that counts every complete word in that subtree.
+        return countWordsFromNode(current);
     }
 
     // Get all words stored in the Trie
@@ -268,9 +317,12 @@ public:
     // Input: none
     // Output: none
     // Purpose: Completely clear the Trie
-    void clear()
-    {
-        // TODO: Implement this function
+    void clear() {
+        // Free the entire existing tree first so the old nodes don't leak,
+        // then reset the Trie back to a freshly-constructed empty state.
+        deleteNodes(root);
+        root = new TrieNode();
+        wordCount = 0;
     }
 
     // Get autocomplete suggestions with a maximum limit
